@@ -48,3 +48,5 @@ warp/native/cutlass/python
 warp/native/cutlass/test
 warp/native/cutlass/tools/profiler
 warp/native/cutlass/tools/library
+.ipynb_checkpoints/
+warp/example/**/*.usd

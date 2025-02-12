@@ -37,7 +37,7 @@ class IntegratorType(Enum):
 
 class Example:
     def __init__(
-        self, stage_path="example_cloth.usd", integrator: IntegratorType = IntegratorType.EULER, height=32, width=64
+        self, stage_path="example_cloth.usd", integrator: IntegratorType = IntegratorType.XPBD, height=32, width=64
     ):
         self.integrator_type = integrator
 
