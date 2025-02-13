@@ -5,11 +5,11 @@ import warp.sim.render
 
 class Example:
     def __init__(self, **sim_cfg):
-        self.max_steps = sim_cfg["max_steps"]
+        self.max_frames = sim_cfg["max_frames"]
         self.num_substeps = sim_cfg["num_substeps"]
 
         self.headless = sim_cfg["headless"]
-        if self.max_steps == -1:
+        if self.max_frames == -1:
             self.headless = False
 
         self.sim_time = 0.0
@@ -25,6 +25,9 @@ class Example:
         self.state_0 = self.model.state()
         self.state_1 = self.model.state()
 
+        # simulator config
+        self.integrator = wp.sim.XPBDIntegrator()
+
         # setup renderer
         stage_path = sim_cfg["stage_path"]
         if self.headless:
@@ -32,7 +35,12 @@ class Example:
         else:
             self.renderer = wp.sim.render.SimRendererOpenGL(self.model, stage_path, scaling=1.0)
 
-        self.integrator = wp.sim.SemiImplicitIntegrator()
+        # this will take a step
+        self.use_cuda_graph = wp.get_device().is_cuda and wp.is_mempool_enabled(wp.get_device())
+        if self.use_cuda_graph:
+            with wp.ScopedCapture() as capture:
+                self.simulate()
+            self.graph = capture.graph
 
         return
 
@@ -60,7 +68,7 @@ class Example:
         return builder
 
     def simulate(self):
-        """Step physics"""
+        """Physics step may consist of multiple substeps"""
         for _ in range(self.num_substeps):
             self.state_0.clear_forces()
             self.state_1.clear_forces()
@@ -73,6 +81,15 @@ class Example:
 
         return
 
+    def step(self):
+        """Step physics"""
+        if self.use_cuda_graph:
+            wp.capture_launch(self.graph)
+        else:
+            self.simulate()
+        self.sim_time += self.frame_dt
+        return
+
     def render(self):
         """Step render"""
         self.renderer.begin_frame(self.sim_time)
@@ -82,32 +99,27 @@ class Example:
 
         return
 
-    def step(self):
-        self.simulate()
-        self.render()
-        self.sim_time += self.frame_dt
-        return
-
     def run(self):
-        if self.max_steps == -1:
+        if self.max_frames == -1:
             while not self.renderer.has_exit:
                 self.step()
+                self.render()
         else:
-            for _ in range(self.max_steps):
+            for _ in range(self.max_frames):
                 self.step()
+                self.render()
 
         self.renderer.save()
-
         return
 
 
 if __name__ == "__main__":
     sim_cfg = {
-        "headless": False,
+        "headless": True,
         "enable_ground": False,
         "fps": 60,
-        "max_steps": -1,  # use -1 for infinite loop, will disable headless
-        "num_substeps": 1,
+        "max_frames": -1,  # use -1 for infinite loop, will disable headless
+        "num_substeps": 2,
         "stage_path": "sim_mass_spring.usd",
         "geometry": {
             "num_particles": 11,
@@ -116,7 +128,7 @@ if __name__ == "__main__":
         },
         "physics": {
             "particle_mass": 1.0,
-            "spring_ke": 1.0e3,
+            "spring_ke": 1.0e6,
             "spring_kd": 1.0,
         },
     }
