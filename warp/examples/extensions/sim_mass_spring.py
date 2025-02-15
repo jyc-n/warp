@@ -33,6 +33,10 @@ class ExampleMassSpring(ExampleBase):
 
         return builder
 
+    def _init_integrator(self):
+        self.integrator = wp.sim.XPBDIntegrator()
+        return
+
 
 if __name__ == "__main__":
     sim_cfg = {

@@ -26,7 +26,7 @@ class ExampleBase:
         self.state_1 = self.model.state()
 
         # simulator config
-        self.integrator = wp.sim.XPBDIntegrator()
+        self._init_integrator()
 
         # setup renderer
         stage_path = sim_cfg["stage_path"]
@@ -66,6 +66,9 @@ class ExampleBase:
             builder.add_spring(i - 1, i, physics_cfg["spring_ke"], physics_cfg["spring_kd"], 0)
 
         return builder
+
+    def _init_integrator(self):
+        raise NotImplementedError
 
     def simulate(self):
         """Physics step may consist of multiple substeps"""
