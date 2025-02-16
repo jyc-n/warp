@@ -21,12 +21,12 @@ class ExampleBase:
 
         # setup core data for simulation
         self.model = builder.finalize("cuda")
-        self.model.ground = sim_cfg["enable_ground"]
+        self.model.ground = sim_cfg["enable_ground"] # TODO: move to init scene
         self.state_0 = self.model.state()
         self.state_1 = self.model.state()
 
         # simulator config
-        self._init_integrator()
+        self._init_integrator(**sim_cfg)
 
         # setup renderer
         stage_path = sim_cfg["stage_path"]
@@ -67,7 +67,7 @@ class ExampleBase:
 
         return builder
 
-    def _init_integrator(self):
+    def _init_integrator(self, **sim_cfg):
         raise NotImplementedError
 
     def simulate(self):

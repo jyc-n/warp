@@ -74,7 +74,7 @@ class ExampleRigidChains(ExampleBase):
 
         return builder
 
-    def _init_integrator(self):
+    def _init_integrator(self, **sim_cfg):
         self.integrator = wp.sim.FeatherstoneIntegrator(self.model)
         wp.sim.eval_fk(self.model, self.model.joint_q, self.model.joint_qd, None, self.state_0)
 
