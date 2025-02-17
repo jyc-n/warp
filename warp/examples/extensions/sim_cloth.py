@@ -42,8 +42,8 @@ class ExampleCloth(ExampleBase):
                 pos=wp.vec3(0.0, 4.0, 0.0),
                 rot=wp.quat_from_axis_angle(wp.vec3(1.0, 0.0, 0.0), math.pi * 0.5),
                 vel=wp.vec3(0.0, 0.0, 0.0),
-                dim_x=height,
-                dim_y=width,
+                dim_x=width,
+                dim_y=height,
                 cell_x=0.1,
                 cell_y=0.1,
                 mass=0.1,
@@ -57,8 +57,8 @@ class ExampleCloth(ExampleBase):
                 pos=wp.vec3(0.0, 4.0, 0.0),
                 rot=wp.quat_from_axis_angle(wp.vec3(1.0, 0.0, 0.0), math.pi * 0.5),
                 vel=wp.vec3(0.0, 0.0, 0.0),
-                dim_x=height,
-                dim_y=width,
+                dim_x=width,
+                dim_y=height,
                 cell_x=0.1,
                 cell_y=0.1,
                 mass=0.1,
@@ -99,7 +99,7 @@ class ExampleCloth(ExampleBase):
         if solver_cfg["integrator"] == IntegratorType.EULER:
             self.integrator = wp.sim.SemiImplicitIntegrator()
         elif solver_cfg["integrator"] == IntegratorType.XPBD:
-            self.integrator = wp.sim.XPBDIntegrator(iterations=1)
+            self.integrator = wp.sim.XPBDIntegrator(iterations=solver_cfg["iterations"])
         # else:
         #     self.integrator = wp.sim.VBDIntegrator(self.model, iterations=1)
 
@@ -110,10 +110,13 @@ if __name__ == "__main__":
     sim_cfg = {
         "headless": True,
         "enable_ground": True,
+        "enable_collide": True,
         "fps": 60,
         "max_frames": 600,  # use -1 for infinite loop, will disable headless
-        "num_substeps": 10,
+        "num_substeps": 32,
+        "output_path": "outputs",
         "stage_path": "sim_cloth.usd",
+        "render_scale": 100.0,
         "geometry": {
             "cloth_grid_height": 32,
             "cloth_grid_width": 64,
@@ -124,7 +127,8 @@ if __name__ == "__main__":
             "spring_kd": 1.0,
         },
         "solver": {
-            "integrator": IntegratorType.XPBD,
+            "integrator": IntegratorType.EULER,
+            "iterations": 1,
         },
     }
 

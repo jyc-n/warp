@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import warp as wp
 import warp.sim
 import warp.sim.render
@@ -16,12 +18,14 @@ class ExampleBase:
         self.frame_dt = 1.0 / sim_cfg["fps"]
         self.sim_dt = self.frame_dt / self.num_substeps
 
+        self.enable_collider = sim_cfg["enable_collide"]
+
         # initialize scene
         builder = self._init_scene(**sim_cfg)
 
         # setup core data for simulation
         self.model = builder.finalize("cuda")
-        self.model.ground = sim_cfg["enable_ground"] # TODO: move to init scene
+        self.model.ground = sim_cfg["enable_ground"]  # TODO: move to init scene
         self.state_0 = self.model.state()
         self.state_1 = self.model.state()
 
@@ -29,7 +33,10 @@ class ExampleBase:
         self._init_integrator(**sim_cfg)
 
         # setup renderer
-        stage_path = sim_cfg["stage_path"]
+        output_path = Path(sim_cfg["output_path"])
+        if not output_path.exists():
+            output_path.mkdir(parents=True)
+        stage_path = (output_path / sim_cfg["stage_path"]).as_posix()
         if self.headless:
             self.renderer = wp.sim.render.SimRenderer(self.model, stage_path, scaling=1.0)
         else:
@@ -45,33 +52,16 @@ class ExampleBase:
         return
 
     def _init_scene(self, **sim_cfg):
-        physics_cfg = sim_cfg["physics"]
-        geo_cfg = sim_cfg["geometry"]
-
-        builder = wp.sim.ModelBuilder()
-
-        # anchor point (zero mass)
-        builder.add_particle((0, 1.0, 0.0), (0.0, 0.0, 0.0), 0.0)
-
-        sep = geo_cfg["chain_length"] / (geo_cfg["num_particles"] - 1)
-
-        # build chain
-        for i in range(1, geo_cfg["num_particles"]):
-            builder.add_particle(
-                (i * sep, 1.0, 0.0),
-                (0.0, 0.0, 0.0),
-                physics_cfg["particle_mass"],
-                radius=geo_cfg["particle_radius"],
-            )
-            builder.add_spring(i - 1, i, physics_cfg["spring_ke"], physics_cfg["spring_kd"], 0)
-
-        return builder
+        raise NotImplementedError
 
     def _init_integrator(self, **sim_cfg):
         raise NotImplementedError
 
     def simulate(self):
         """Physics step may consist of multiple substeps"""
+        if self.enable_collider:
+            wp.sim.collide(self.model, self.state_0)
+
         for _ in range(self.num_substeps):
             self.state_0.clear_forces()
             self.state_1.clear_forces()

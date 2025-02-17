@@ -42,9 +42,11 @@ if __name__ == "__main__":
     sim_cfg = {
         "headless": True,
         "enable_ground": False,
+        "enable_collide": True,
         "fps": 60,
         "max_frames": 600,  # use -1 for infinite loop, will disable headless
         "num_substeps": 2,
+        "output_path": "outputs",
         "stage_path": "sim_mass_spring.usd",
         "geometry": {
             "num_particles": 11,
