@@ -55,21 +55,29 @@ class ExampleRigidChains(ExampleBase):
 
             # joint_limit_lower = -np.deg2rad(60.0)
             # joint_limit_upper = np.deg2rad(60.0)
-            joint_target = np.deg2rad(180)
+            # joint_target = np.deg2rad(180)
 
-            builder.add_joint_revolute(
+            # builder.add_joint_revolute(
+            #     parent=parent,
+            #     child=b,
+            #     axis=(0.0, 0.0, 1.0),
+            #     parent_xform=parent_joint_xform,
+            #     child_xform=wp.transform_identity(),
+            #     # limit_lower=joint_limit_lower,
+            #     # limit_upper=joint_limit_upper,
+            #     target=joint_target,
+            #     target_ke=1e5,
+            #     target_kd=1e2,
+            #     limit_ke=1e5,
+            #     limit_kd=1.0,
+            # )
+            builder.add_joint_ball(
                 parent=parent,
                 child=b,
-                axis=(0.0, 0.0, 1.0),
                 parent_xform=parent_joint_xform,
                 child_xform=wp.transform_identity(),
-                # limit_lower=joint_limit_lower,
-                # limit_upper=joint_limit_upper,
-                target=joint_target,
-                target_ke=1e5,
-                target_kd=1e2,
-                limit_ke=1e5,
-                limit_kd=1.0,
+                linear_compliance=0.0,
+                angular_compliance=1,
             )
 
         return builder
@@ -85,7 +93,7 @@ if __name__ == "__main__":
     sim_cfg = {
         "headless": True,
         "enable_ground": False,
-        "enable_collide": True,
+        "enable_collide": False,
         "fps": 60,
         "max_frames": 600,  # use -1 for infinite loop, will disable headless
         "num_substeps": 10,
