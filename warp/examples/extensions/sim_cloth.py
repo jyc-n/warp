@@ -37,7 +37,13 @@ class ExampleCloth(ExampleBase):
         solver_cfg = sim_cfg["solver"]
 
         # add cloth
+        # tri_ke, tri_ka, tri_kd are for in-plane stretching, FEM model
+        # spring_ke, spring_kd are for stretching, edge springs
+        # edge_ke, edge_kd are for bending, diagonal springs
+        # SemiImplicitIntegrator uses triangle+bending
+        # XPBD uses edge+bending
         if solver_cfg["integrator"] == IntegratorType.EULER:
+            physics_cfg = sim_cfg["physics"]["Euler"]
             builder.add_cloth_grid(
                 pos=wp.vec3(0.0, 4.0, 0.0),
                 rot=wp.quat_from_axis_angle(wp.vec3(1.0, 0.0, 0.0), math.pi * 0.5),
@@ -46,13 +52,33 @@ class ExampleCloth(ExampleBase):
                 dim_y=height,
                 cell_x=0.1,
                 cell_y=0.1,
-                mass=0.1,
+                mass=sim_cfg["physics"]["particle_mass"],
                 fix_left=True,
-                tri_ke=1.0e3,
-                tri_ka=1.0e3,
-                tri_kd=1.0e1,
+                tri_ke=physics_cfg["tri_ke"],
+                tri_ka=physics_cfg["tri_ka"],
+                tri_kd=physics_cfg["tri_kd"],
+                edge_ke=physics_cfg["edge_ke"],
+                edge_kd=physics_cfg["edge_kd"],
+            )
+
+            builder.add_cloth_grid(
+                pos=wp.vec3(0.0, 5.0, 0.0),
+                rot=wp.quat_from_axis_angle(wp.vec3(1.0, 0.0, 0.0), math.pi * 0.5),
+                vel=wp.vec3(0.0, 0.0, 0.0),
+                dim_x=width,
+                dim_y=height,
+                cell_x=0.1,
+                cell_y=0.1,
+                mass=sim_cfg["physics"]["particle_mass"],
+                fix_left=True,
+                tri_ke=physics_cfg["tri_ke"],
+                tri_ka=physics_cfg["tri_ka"],
+                tri_kd=physics_cfg["tri_kd"],
+                edge_ke=physics_cfg["edge_ke"],
+                edge_kd=physics_cfg["edge_kd"],
             )
         elif solver_cfg["integrator"] == IntegratorType.XPBD:
+            physics_cfg = sim_cfg["physics"]["XPBD"]
             builder.add_cloth_grid(
                 pos=wp.vec3(0.0, 4.0, 0.0),
                 rot=wp.quat_from_axis_angle(wp.vec3(1.0, 0.0, 0.0), math.pi * 0.5),
@@ -61,13 +87,31 @@ class ExampleCloth(ExampleBase):
                 dim_y=height,
                 cell_x=0.1,
                 cell_y=0.1,
-                mass=0.1,
+                mass=sim_cfg["physics"]["particle_mass"],
                 fix_left=True,
-                edge_ke=1.0e2,
+                edge_ke=physics_cfg["edge_ke"],
+                edge_kd=physics_cfg["edge_kd"],
                 add_springs=True,
-                spring_ke=1.0e3,
-                spring_kd=0.0,
+                spring_ke=physics_cfg["spring_ke"],
+                spring_kd=physics_cfg["spring_kd"],
             )
+            builder.add_cloth_grid(
+                pos=wp.vec3(0.0, 5.0, 0.0),
+                rot=wp.quat_from_axis_angle(wp.vec3(1.0, 0.0, 0.0), math.pi * 0.5),
+                vel=wp.vec3(0.0, 0.0, 0.0),
+                dim_x=width,
+                dim_y=height,
+                cell_x=0.1,
+                cell_y=0.1,
+                mass=sim_cfg["physics"]["particle_mass"],
+                fix_left=True,
+                edge_ke=physics_cfg["edge_ke"],
+                edge_kd=physics_cfg["edge_kd"],
+                add_springs=True,
+                spring_ke=physics_cfg["spring_ke"],
+                spring_kd=physics_cfg["spring_kd"],
+            )
+
 
         # add collider
         usd_stage = Usd.Stage.Open(os.path.join(warp.examples.get_asset_directory(), "bunny.usd"))
@@ -109,25 +153,40 @@ class ExampleCloth(ExampleBase):
 if __name__ == "__main__":
     sim_cfg = {
         "headless": True,
-        "enable_ground": True,
+        "enable_ground": False,
         "enable_collide": True,
         "fps": 60,
         "max_frames": 600,  # use -1 for infinite loop, will disable headless
         "num_substeps": 32,
         "output_path": "outputs",
         "stage_path": "sim_cloth.usd",
-        "render_scale": 100.0,
+        "render_scale": 1.0,
         "geometry": {
             "cloth_grid_height": 32,
             "cloth_grid_width": 64,
         },
         "physics": {
-            "particle_mass": 1.0,
-            "spring_ke": 1.0e6,
-            "spring_kd": 1.0,
+            "particle_mass": 0.1,
+            "Euler": {
+                # in-plane
+                "tri_ke": 1.0e3,
+                "tri_ka": 1.0e3,
+                "tri_kd": 1.0e1,
+                # bending
+                "edge_ke": 1.0e2,
+                "edge_kd": 0.0,
+            },
+            "XPBD": {
+                # in-plane
+                "spring_ke": 1.0e3,
+                "spring_kd": 0.0,
+                # bending
+                "edge_ke": 1.0e2,
+                "edge_kd": 0.0,
+            },
         },
         "solver": {
-            "integrator": IntegratorType.EULER,
+            "integrator": IntegratorType.XPBD,
             "iterations": 1,
         },
     }
