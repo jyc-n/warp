@@ -17,19 +17,31 @@ class ExampleMassSpring(ExampleBase):
         builder = wp.sim.ModelBuilder()
 
         # anchor point (zero mass)
-        builder.add_particle((0, 1.0, 0.0), (0.0, 0.0, 0.0), 0.0)
+        builder.add_particle((0, 1.0, 0.0), (0.0, 0.0, 0.0), 0.0, radius=geo_cfg["particle_radius"])
 
         sep = geo_cfg["chain_length"] / (geo_cfg["num_particles"] - 1)
 
         # build chain
         for i in range(1, geo_cfg["num_particles"]):
-            builder.add_particle(
-                (i * sep, 1.0, 0.0),
-                (0.0, 0.0, 0.0),
-                physics_cfg["particle_mass"],
-                radius=geo_cfg["particle_radius"],
-            )
+            if i <= 1:
+                builder.add_particle(
+                    (i * sep, 1.0, 0.0),
+                    (0.0, 0.0, 0.0),
+                    0.0,
+                    radius=geo_cfg["particle_radius"],
+                )
+                print("fixed particle", i)
+            else:
+                builder.add_particle(
+                    (i * sep, 1.0, 0.0),
+                    (0.0, 0.0, 0.0),
+                    physics_cfg["particle_mass"],
+                    radius=geo_cfg["particle_radius"],
+                )
             builder.add_spring(i - 1, i, physics_cfg["spring_ke"], physics_cfg["spring_kd"], 0)
+
+        for i in range(2, geo_cfg["num_particles"]):
+            builder.add_spring(i - 2, i, physics_cfg["bending_ke"], physics_cfg["bending_kd"], 0)
 
         return builder
 
@@ -45,7 +57,7 @@ if __name__ == "__main__":
         "enable_collide": True,
         "fps": 60,
         "max_frames": 600,  # use -1 for infinite loop, will disable headless
-        "num_substeps": 2,
+        "num_substeps": 32,
         "output_path": "outputs",
         "stage_path": "sim_mass_spring.usd",
         "geometry": {
@@ -57,6 +69,8 @@ if __name__ == "__main__":
             "particle_mass": 1.0,
             "spring_ke": 1.0e6,
             "spring_kd": 1.0,
+            "bending_ke": 1.0e6,
+            "bending_kd": 1.0,
         },
     }
 

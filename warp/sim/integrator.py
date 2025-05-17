@@ -39,7 +39,7 @@ def integrate_particles(
     v1_mag = wp.length(v1)
     if v1_mag > v_max:
         v1 *= v_max / v1_mag
-    x1 = x0 + v1 * dt
+    x1 = x0 + 0.9995 * v1 * dt
 
     x_new[tid] = x1
     v_new[tid] = v1
