@@ -46,18 +46,20 @@ class ExampleMassSpring(ExampleBase):
         return builder
 
     def _init_integrator(self, **sim_cfg):
-        self.integrator = wp.sim.XPBDIntegrator()
+        physics_cfg = sim_cfg["physics"]
+        self.integrator = wp.sim.XPBDIntegrator(particle_velocity_damping=physics_cfg["vel_damping"])
         return
 
 
 if __name__ == "__main__":
     sim_cfg = {
         "headless": True,
-        "enable_ground": False,
+        "enable_ground": True,
+        "ground_y": -4.0,
         "enable_collide": True,
-        "fps": 60,
+        "fps": 30,
         "max_frames": 600,  # use -1 for infinite loop, will disable headless
-        "num_substeps": 32,
+        "num_substeps": 64,
         "output_path": "outputs",
         "stage_path": "sim_mass_spring.usd",
         "geometry": {
@@ -71,6 +73,7 @@ if __name__ == "__main__":
             "spring_kd": 1.0,
             "bending_ke": 1.0e6,
             "bending_kd": 1.0,
+            "vel_damping": 2e-4,
         },
     }
 

@@ -22,10 +22,11 @@ class ExampleBase:
 
         # initialize scene
         builder = self._init_scene(**sim_cfg)
+        builder.set_ground_plane(offset=-sim_cfg["ground_y"])
 
         # setup core data for simulation
         self.model = builder.finalize("cuda")
-        self.model.ground = sim_cfg["enable_ground"]  # TODO: move to init scene
+        # self.model.ground = sim_cfg["enable_ground"]  # TODO: move to init scene
         self.state_0 = self.model.state()
         self.state_1 = self.model.state()
 
@@ -38,7 +39,7 @@ class ExampleBase:
             output_path.mkdir(parents=True)
         stage_path = (output_path / sim_cfg["stage_path"]).as_posix()
         if self.headless:
-            self.renderer = wp.sim.render.SimRenderer(self.model, stage_path, scaling=1.0)
+            self.renderer = wp.sim.render.SimRenderer(self.model, stage_path, scaling=1.0, fps=sim_cfg["fps"])
         else:
             self.renderer = wp.sim.render.SimRendererOpenGL(self.model, stage_path, scaling=1.0)
 

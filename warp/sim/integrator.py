@@ -19,6 +19,7 @@ def integrate_particles(
     particle_flags: wp.array(dtype=wp.uint32),
     gravity: wp.vec3,
     dt: float,
+    vel_damping: float,
     v_max: float,
     x_new: wp.array(dtype=wp.vec3),
     v_new: wp.array(dtype=wp.vec3),
@@ -39,7 +40,7 @@ def integrate_particles(
     v1_mag = wp.length(v1)
     if v1_mag > v_max:
         v1 *= v_max / v1_mag
-    x1 = x0 + 0.9995 * v1 * dt
+    x1 = x0 + (1.0 - vel_damping) * v1 * dt
 
     x_new[tid] = x1
     v_new[tid] = v1
@@ -192,6 +193,7 @@ class Integrator:
         state_in: State,
         state_out: State,
         dt: float,
+        vel_damping: float = 0.0,
     ):
         """
         Integrate the particles of the model.
@@ -214,6 +216,7 @@ class Integrator:
                     model.particle_flags,
                     model.gravity,
                     dt,
+                    vel_damping,
                     model.particle_max_velocity,
                 ],
                 outputs=[state_out.particle_q, state_out.particle_qd],

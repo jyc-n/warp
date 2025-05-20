@@ -2658,6 +2658,7 @@ class XPBDIntegrator(Integrator):
         rigid_contact_relaxation=0.8,
         rigid_contact_con_weighting=True,
         angular_damping=0.0,
+        particle_velocity_damping=0.0,
         enable_restitution=False,
     ):
         self.iterations = iterations
@@ -2671,6 +2672,7 @@ class XPBDIntegrator(Integrator):
         self.rigid_contact_relaxation = rigid_contact_relaxation
         self.rigid_contact_con_weighting = rigid_contact_con_weighting
 
+        self.particle_velocity_damping = particle_velocity_damping
         self.angular_damping = angular_damping
 
         self.enable_restitution = enable_restitution
@@ -2816,7 +2818,7 @@ class XPBDIntegrator(Integrator):
                     self.particle_qd_init = wp.clone(state_in.particle_qd)
                 particle_deltas = wp.empty_like(state_out.particle_qd)
 
-                self.integrate_particles(model, state_in, state_out, dt)
+                self.integrate_particles(model, state_in, state_out, dt, self.particle_velocity_damping)
 
             if model.body_count:
                 body_q = state_out.body_q
